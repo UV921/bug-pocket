@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client"
-  output   = "../lib/generated/prisma"
+  output = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -15,6 +15,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   refreshTokens RefreshToken[]
+  bugs Bug[]
+
 }
 model RefreshToken {
   id        String   @id @default(cuid())
@@ -25,4 +27,33 @@ model RefreshToken {
   updatedAt DateTime @updatedAt
 
   user      User     @relation(fields: [userId], references: [id])
+}
+
+  enum Severity {
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+  }
+model Bug{
+  id        String   @id @default(cuid())
+  title     String
+  description String
+  reproductionSteps String
+  userId String
+  codesnippit String
+  codinglanguage String
+  severity Severity
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id])
+
+
+
+  
+
+  
+  
+  
 }

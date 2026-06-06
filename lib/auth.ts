@@ -15,13 +15,13 @@ export async function comaparePassword(password:string,hashedPassword:string):Pr
 
 //fucntion to generate jwt token 
 //before tho
-export function generateToken(payload:object,expiresIn:string):string{
-    const secret=process.env.JWT_SECRET_KEY || 'your_jwt_secret';
+export function generateToken(payload:object,expiresIn:jwt.SignOptions["expiresIn"]):string{
+    const secret=process.env.JWT_SECRET_KEY as string;
     return jwt.sign(payload,secret,{expiresIn});
 }
 // for verifying the token
 export function verifyToken(token:string):object |null{
-    const secret=process.env.JWT_SECRET_KEY
+    const secret=process.env.JWT_SECRET_KEY as string;
     try{
         const decoded =jwt.verify(token,secret);
         return decoded as object;
