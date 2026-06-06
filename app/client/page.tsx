@@ -1,6 +1,6 @@
 //consume the api route hello.tsx deaault server
 async function getData() {
-    const res=await fetch('http://localhost:3000/api/hello');
+    const res=await fetch('/api/hello');
     if(!res.ok){
         throw new Error('failed to fetch the data');
     }
