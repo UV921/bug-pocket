@@ -1,21 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { loginSchema } from "@/schemas/auth.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { login } from "@/action/logIn";
+import { applyAuthActionResult } from "@/lib/handle-auth-action-result";
 import type { z } from "zod";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-type ActionError = {
-  success: false;
-  errors: { field: string | number; message: string }[];
-};
-
 export default function LoginPage() {
+  const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -33,20 +31,10 @@ export default function LoginPage() {
     formData.append("email", data.email);
     formData.append("password", data.password);
 
-    try {
-      const result = (await login(formData)) as ActionError | undefined;
-      if (!result || result.success !== false) return;
-
-      for (const err of result.errors) {
-        const field = String(err.field);
-        if (field === "email" || field === "password") {
-          form.setError(field, { message: err.message });
-        } else {
-          setFormError(err.message);
-        }
-      }
-    } catch {
-      // redirect() throws; navigation is handling success
+    const result = await login(formData);
+    if (applyAuthActionResult(result, form, setFormError, ["email", "password"])) {
+      router.push("/dashboard");
+      router.refresh();
     }
   }
 

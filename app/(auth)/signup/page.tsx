@@ -1,21 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { registerSchema } from "@/schemas/auth.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { register } from "@/action/singIn";
+import { applyAuthActionResult } from "@/lib/handle-auth-action-result";
 import type { z } from "zod";
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-type ActionError = {
-  success: false;
-  errors: { field: string | number; message: string }[];
-};
-
 export default function SignupPage() {
+  const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -35,20 +33,10 @@ export default function SignupPage() {
     formData.append("email", data.email);
     formData.append("password", data.password);
 
-    try {
-      const result = (await register(formData)) as ActionError | undefined;
-      if (!result || result.success !== false) return;
-
-      for (const err of result.errors) {
-        const field = String(err.field);
-        if (field === "username" || field === "email" || field === "password") {
-          form.setError(field, { message: err.message });
-        } else {
-          setFormError(err.message);
-        }
-      }
-    } catch {
-      // redirect() throws; navigation is handling success
+    const result = await register(formData);
+    if (applyAuthActionResult(result, form, setFormError, ["username", "email", "password"])) {
+      router.push("/dashboard");
+      router.refresh();
     }
   }
 
