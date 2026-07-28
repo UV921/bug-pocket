@@ -12,6 +12,7 @@ import {
   authActionError,
   type AuthActionResult,
 } from "@/lib/auth-action-result";
+import { prismaErrorMessage } from "@/lib/prisma-error-message";
 
 export async function login(formdata: FormData): Promise<AuthActionResult> {
   try {
@@ -91,9 +92,6 @@ export async function login(formdata: FormData): Promise<AuthActionResult> {
     return { success: true };
   } catch (error) {
     console.error("Login failed:", error);
-    return authActionError(
-      "form",
-      "Could not sign you in. Check server logs or try again.",
-    );
+    return authActionError("form", prismaErrorMessage(error));
   }
 }

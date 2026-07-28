@@ -12,6 +12,7 @@ import {
   authActionError,
   type AuthActionResult,
 } from "@/lib/auth-action-result";
+import { prismaErrorMessage } from "@/lib/prisma-error-message";
 
 export async function register(formdata: FormData): Promise<AuthActionResult> {
   try {
@@ -94,9 +95,6 @@ export async function register(formdata: FormData): Promise<AuthActionResult> {
     return { success: true };
   } catch (error) {
     console.error("Register failed:", error);
-    return authActionError(
-      "form",
-      "Could not create your account. Check server logs or try again.",
-    );
+    return authActionError("form", prismaErrorMessage(error));
   }
 }
