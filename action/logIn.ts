@@ -1,109 +1,92 @@
-//make for the login action 
-//took the email ,password
-//check in db if user exist or not 
-//not exsit and return the error
-//if exist then compare the password
-//if yes then gernate the acess adn refresh set cookie 
-//if not then retun the error or redirect to resgiter page 
-"use server"
+"use server";
 
 import { loginSchema } from "@/schemas/auth.schema";
 import { prisma } from "@/lib/prisma";
-import { comaparePassword ,generateToken} from "@/lib/auth";
-import {cookies} from "next/headers"
+import { comaparePassword, generateToken } from "@/lib/auth";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import {
+  ACCESS_TOKEN_COOKIE,
+  REFRESH_TOKEN_COOKIE,
+} from "@/lib/session";
 
+export async function login(formdata: FormData) {
+  const rawData = {
+    email: formdata.get("email"),
+    password: formdata.get("password"),
+  };
 
-export async function login(formdata:FormData){
-    const rawData={
-        email:formdata.get("email"),
-        password:formdata.get("password"),
-    }
-    const validatedData=loginSchema.safeParse(rawData);
-    if(!validatedData.success){
-        return {
-            success:false,
-            errors:validatedData.error.issues.map((err)=>({
-                field:err.path[0],
-                message:err.message
-            }))
-        }
-    }
-    const {email,password}=validatedData.data;
+  const validatedData = loginSchema.safeParse(rawData);
+  if (!validatedData.success) {
+    return {
+      success: false,
+      errors: validatedData.error.issues.map((err) => ({
+        field: err.path[0],
+        message: err.message,
+      })),
+    };
+  }
 
-    const user =await prisma.user.findUnique({where:{email}})
-    if(!user){
-        return {
-            success:false,
-            errors:[
-                {
-                    field:"email",
-                    message:"User not found"
-                }
-            ]
-        }
-    }
-    const ispassowrdvalid=await comaparePassword(user.password,password);
-    if(!ispassowrdvalid){
-        return {
-            success:false,
-            errors:[
-                {
-                    field:"password",
-                    message:"Invalid password"
-                }
-            ]
-        }
-    }
-    const acessToken=generateToken({userID:user.id,email:user.email},"15m")
-    const refreshToken=generateToken({userID:user.id},"7d")
+  const { email, password } = validatedData.data;
 
-    const cookiesSet=await cookies();
-    cookiesSet.set("acesstoken",acessToken,{
-        httpOnly:true,
-        secure:process.env.NODE_ENV==="production",
-        sameSite:"strict",
-        maxAge:15*60, //15 min
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    return {
+      success: false,
+      errors: [{ field: "email", message: "User not found" }],
+    };
+  }
 
-        path:"/"
-        
-    
+  const isPasswordValid = await comaparePassword(password, user.password);
+  if (!isPasswordValid) {
+    return {
+      success: false,
+      errors: [{ field: "password", message: "Invalid password" }],
+    };
+  }
 
+  if (!process.env.JWT_SECRET_KEY) {
+    return {
+      success: false,
+      errors: [
+        {
+          field: "form",
+          message: "Server auth is misconfigured (missing JWT_SECRET_KEY).",
+        },
+      ],
+    };
+  }
 
-    })
-    cookiesSet.set("refreshtoken",refreshToken,{
-        httpOnly:true,
-        secure:process.env.NODE_ENV==="production",
-        sameSite:"strict",
-        maxAge:7*24*60*60
+  const accessToken = generateToken(
+    { userId: user.id, email: user.email },
+    "15m",
+  );
+  const refreshToken = generateToken({ userId: user.id }, "7d");
 
-    })
-    //remove old refresh toekn table and add new one 
-    await prisma.refreshToken.deleteMany({
-        where:{
-            userId:user.id
-        }
-    })
-    //create new refresh token
-    await prisma.refreshToken.create({
-        data:{
-            token:refreshToken,
-            userId:user.id,
-            expireAt:new Date(Date.now()+7*24*60*60*1000),
+  const cookieStore = await cookies();
+  cookieStore.set(ACCESS_TOKEN_COOKIE, accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 15 * 60,
+    path: "/",
+  });
+  cookieStore.set(REFRESH_TOKEN_COOKIE, refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60,
+    path: "/",
+  });
 
-        }
-    })
-    redirect("/dashboard");
-    //here to work
-    
-    
-    
+  await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      userId: user.id,
+      expireAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    },
+  });
 
-
-
-
+  redirect("/dashboard");
 }
-
-
-
-

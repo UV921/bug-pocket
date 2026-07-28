@@ -1,126 +1,128 @@
-# BugPocket 🐞
+# BugPocket
 
-BugPocket is a mini SaaS-style bug tracking application built with Next.js Full Stack concepts. Users can authenticate, report bugs, manage issues, and track bug-related information in a clean dashboard interface.
+BugPocket is a mini SaaS-style bug tracking application built with Next.js full-stack concepts. Users authenticate, report bugs, manage severity and status, and track issues from a dashboard and personal library.
 
-This project was built as part of the **Next.js Full Stack Project – Web Dev Cohort 2026**.
+Built for the **Next.js Full Stack Project – Web Dev Cohort 2026**.
 
 ---
 
-## 🚀 Project Overview
-
-BugPocket helps developers or teams manage software bugs in one place.
+## Project overview
 
 Users can:
 
-* Create bug reports
+* Create bug reports with reproduction steps, severity, environment, snippets, and solutions
 * Track bug severity and status
-* View all bugs in a library
-* Manage bug details
-* Authenticate securely using JWT cookies
+* View and manage bugs in a library
+* Authenticate securely with JWT HttpOnly cookies
 
-The project demonstrates major Next.js Full Stack concepts including:
+Demonstrates:
 
-* File Based Routing
+* File-based App Router + route groups
 * Layouts
-* API Routes
+* API Route Handlers
 * Server Actions
-* Database Integration
-* SSR, SSG and ISR
-* CRUD operations
+* Prisma + PostgreSQL (Neon)
+* SSR for protected pages
+* Full CRUD
 
 ---
 
-## 🛠 Tech Stack
+## Tech stack
 
-### Frontend
+**Frontend:** Next.js 16, React, TypeScript, Tailwind CSS, React Hook Form, Zod, shadcn/ui
 
-* Next.js 16
-* React
-* TypeScript
-* Tailwind CSS
-* React Hook Form
-* Zod
-* Shadcn UI
+**Backend:** Next.js Route Handlers, Server Actions, JWT auth
 
-### Backend
+**Database:** Prisma ORM, PostgreSQL / Neon
 
-* Next.js API Routes
-* Server Actions
-* JWT Authentication
-
-### Database
-
-* Prisma ORM
-* PostgreSQL / Neon Database
-
-### Deployment
-
-* Vercel
+**Deploy:** Vercel
 
 ---
 
-## ✨ Features Implemented
+## Features
 
 ### Authentication
 
-* User Signup
-* User Login
-* JWT Access Token
-* Refresh Token System
-* HttpOnly Cookies
-* Protected Routes
+* Signup / login
+* JWT access + refresh tokens
+* HttpOnly cookies
+* Protected routes (`proxy.ts`)
+* Logout
 
-### Bug Management
+### Bug management
 
-* Create Bug
-* View Bugs
-* Update Bug
-* Delete Bug
+* Create, view, update, delete
+* Severity: LOW · MEDIUM · HIGH · CRITICAL
+* Status: OPEN · IN_PROGRESS · RESOLVED · CLOSED
 
 ### Dashboard
 
-* User dashboard
-* Bug statistics
+* Total / open / critical stats
 * Recent bugs
 
-### Library
+### Library & profile
 
-* View all bugs
-* Bug listing and management
-
----
-
-## 📂 Routes / Pages
-
-### Public Routes
-
-* `/`
-* `/signin`
-* `/signup`
-* `/about`
-
-### Protected Routes
-
-* `/dashboard`
-* `/library`
-* `/profile`
+* Full bug listing and detail editing
+* Profile summary
 
 ---
 
-## 🔌 API Routes
+## Routes
 
-### Bugs API
+### Public
 
-#### GET
+| Path | Description |
+|------|-------------|
+| `/` | Landing |
+| `/login` | Login |
+| `/signin` | Redirects to `/login` |
+| `/signup` | Signup |
+| `/about` | About |
 
-```http
-/api/bugs
-```
+### Protected
 
-Get all bugs.
+| Path | Description |
+|------|-------------|
+| `/dashboard` | Stats + recent bugs |
+| `/library` | Bug list |
+| `/library/new` | Create bug |
+| `/library/[id]` | View / update / delete |
+| `/profile` | Account summary |
 
-#### POST
+---
 
-```http
-/api/bugs
+## API routes
+
+### `GET /api/bugs`
+
+List bugs for the authenticated user.
+
+### `POST /api/bugs`
+
+Create a bug (JSON body matching create schema).
+
+### `GET /api/bugs/[id]`
+
+Fetch one bug owned by the user.
+
+### `PATCH /api/bugs/[id]`
+
+Update fields (title, status, severity, etc.).
+
+### `DELETE /api/bugs/[id]`
+
+Delete a bug owned by the user.
+
+All bug API routes require the `accessToken` cookie.
+
+---
+
+## Getting started
+
+```bash
+bun install   # or npm install
+cp .env.example .env   # set DATABASE_URL and JWT_SECRET_KEY
+bunx prisma migrate deploy
+bunx prisma generate
+bun run dev
 ```

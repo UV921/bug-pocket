@@ -1,9 +1,24 @@
 import "./global.css";
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { Syne, Outfit } from "next/font/google";
+import type { Metadata } from "next";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeScript } from "@/components/theme-script";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const display = Syne({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
 
+const sans = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+});
+
+export const metadata: Metadata = {
+  title: "BugPocket",
+  description:
+    "Pocket every bug before it slips into production. Track severity, status, and context.",
+};
 
 export default function RootLayout({
   children,
@@ -11,14 +26,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html >
-      <body className="bg-gray-100">
-        <div>
-          
-          <div > {children}</div>
-          
-        </div>
+    <html lang="en" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+        <ThemeScript />
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

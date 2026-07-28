@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client"
-  output = "../lib/generated/prisma"
+  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -8,52 +8,57 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String         @id @default(cuid())
+  username      String
+  email         String         @unique
+  password      String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]
-  bugs Bug[]
-
+  bugs          Bug[]
 }
+
 model RefreshToken {
   id        String   @id @default(cuid())
   token     String
   userId    String
   createdAt DateTime @default(now())
-  expireAt DateTime 
+  expireAt  DateTime
   updatedAt DateTime @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-  enum Severity {
-    LOW
-    MEDIUM
-    HIGH
-    CRITICAL
-  }
-model Bug{
-  id        String   @id @default(cuid())
-  title     String
-  description String
-  reproductionSteps String
-  userId String
-  codesnippit String
-  codinglanguage String
-  severity Severity
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
 
-  user      User     @relation(fields: [userId], references: [id])
+enum Status {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
 
+model Bug {
+  id                 String   @id @default(cuid())
+  title              String
+  description        String
+  reproductionSteps  String
+  userId             String
+  codeSnippet        String?
+  codingLanguage     String?
+  severity           Severity
+  status             Status   @default(OPEN)
+  environment        String?
+  attachment         String?
+  reference          String?
+  solution           String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-
-  
-
-  
-  
-  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
